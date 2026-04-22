@@ -1,3 +1,5 @@
+import firebase_admin
+from firebase_admin import credentials, firestore
 import streamlit as st
 import time
 from datetime import datetime
@@ -8,8 +10,19 @@ import traceback
 
 # --- BACKEND LOGIC (Z'Ai COMMANDER) ---
 
+# --- 0. FIREBASE & AI CLIENT SETUP ---
+if not firebase_admin._apps:
+    creds_dict = dict(st.secrets["firebase"])
+    cred = credentials.Certificate(creds_dict)
+    firebase_admin.initialize_app(cred)
+
+db = firestore.client(database_id="shakehand")
+
 # Enter the Z'Ai API Key
-client = genai.Client(api_key=st.secrets["GEMINI_KEY"])
+client = genai.Client(
+    api_key=st.secrets["GEMINI_KEY"],
+    http_options={'base_url': 'api.ilmu.ai/v1'}
+)
 
 if 'sos_database' not in st.session_state:
     st.session_state.sos_database = []
@@ -50,7 +63,7 @@ def process_sos_logic(data):
 """
         try:
             response = client.models.generate_content(
-                model='gemini-2.0-flash',
+                model='nemo-super', 
                 contents=prompt
             )
             ai_analysis = response.text.strip() # Response from AI
@@ -89,12 +102,21 @@ def process_sos_logic(data):
         "status": "Pending", #Initial task status
         "timestamp": now.timestamp(), # Computer time
         "time_str": now.strftime("%H:%M:%S"), # Human time
-        "gps": f"Longitude {lng}, Latitude {lat}",  # GPS
+        "gps": f"Longitude {lng}, Latitude {lat}",  # GPS text for UI
+        "gps_lat": lat, # Numerics for Map
+        "gps_lng": lng, # Numerics for Map
         "contact": f"{mock_phone}" # Phone no. 
     }
     
-    st.session_state.sos_database.append(new_sos) # add new_sos into sos_database
-    return True
+    # --- CRITICAL FIX: Upload to Firebase ---
+    try:
+        db.collection("rescue_missions").document(new_sos["id"]).set(new_sos)
+        st.session_state.sos_database.append(new_sos) # Also keep in local session
+        return True
+    except Exception as e:
+        st.error(f"Database Error: {e}")
+        return False
+
 
 # --- 1. PAGE CONFIG & STYLING ---
 st.set_page_config(page_title="Z.AI - Emergency Escape", page_icon="🧠", layout="centered")
@@ -207,7 +229,7 @@ if st.button("🔥 SEND STANDARDIZED SOS SIGNAL", type="primary"):
                st.success("✅ SOS Transmitted!")
                st.balloons()
                st.info(f"Summary Sent: {water_level} | {people_count} | Position: {position}")
-               if user_note_input:
+               if user_note_input and st.session_state.sos_database:
                    st.subheader("🤖 AI Commander Analysis:")
                    st.write(st.session_state.sos_database[-1]['ai_analysis'])
  
