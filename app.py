@@ -9,7 +9,7 @@ import traceback
 # --- BACKEND LOGIC (Z'Ai COMMANDER) ---
 
 # Enter the Z'Ai API Key
-client = genai.Client(api_key="AIzaSyA3qbH7ydSVatZLm6RecoznpZQeq1Nwmq0")
+client = genai.Client(api_key=st.secrets["GEMINI_KEY"])
 
 if 'sos_database' not in st.session_state:
     st.session_state.sos_database = []
