@@ -411,10 +411,10 @@ if st.session_state.active_sos_id:
 
     st.divider()
     
-        if st.session_state.dead_phone_triggered:
+    if st.session_state.dead_phone_triggered:
         st.warning(_T(
             "🪫 LOW POWER MODE ACTIVE. Survival tools disabled to save battery.", 
-            "🪫 MOD KUASA RENDAH AKTIF. Alat kendiri dilumpuhkan untuk menjimat bateri.", 
+            "🪫 MOD KUASA RENDAH AKTIF. Alat kendiri dilumpuhkan untuk menjamat bateri.", 
             "🪫 低功耗模式已激活。求生工具已禁用以节省电量。"
         ))
     else:
@@ -514,7 +514,6 @@ if st.session_state.active_sos_id:
         st.warning(_T("⚠️ Control room updated! Priority escalated.", "⚠️ Bilik kawalan dikemas kini! Keutamaan ditingkatkan.", "⚠️ 已通知控制室！优先级已提升。"))
 
 else:
-    # [整改重点 1] 如果电量严重受损，隐藏底下的详细表单
     if st.session_state.dead_phone_triggered:
         st.warning(_T(
             "🪫 LOW POWER MODE ACTIVE. Detailed form disabled to conserve final battery.", 
